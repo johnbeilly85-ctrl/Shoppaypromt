@@ -1,17 +1,37 @@
+const express = require("express");
+const path = require("path");
 
-status.style.color="#16a34a";
-status.innerText="Sending STK Push...";
+const app = express();
+const PORT = process.env.PORT || 10000;
 
-try{
-const res=await fetch("https://shoppomt.onrender.com/stkpush",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({phone,amount})
+app.use(express.json());
+app.use(express.static(path.join(__dirname)));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-const data=await res.json();
+app.post("/stkpush", async (req, res) => {
+  try {
+    const { phone, amount } = req.body;
 
-status.style.color="#16a34a";
-status.innerText=data.message || "STK Push sent. Check your phone.";
-}catch(err){
-status.style.color="red"
+    return res.json({
+      success: true,
+      message: "Pay to ShopPay Prompt Till 1714273",
+      till: "1714273",
+      businessName: "ShopPay Prompt",
+      phone,
+      amount
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`ShopPay Prompt running on port ${PORT}`);
+});
