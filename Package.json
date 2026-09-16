@@ -1,0 +1,13 @@
+
+{
+  "name": "shoppaypromt",
+  "version": "1.0.0",
+  "description": "ShopPay Prompt M-Pesa STK service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
