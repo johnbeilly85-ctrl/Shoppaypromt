@@ -1,55 +1,121 @@
-const express = require("express");
-const axios = require("axios");
-const app = express();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopPay Prompt</title>
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+body{
+background:#f5f5f5;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+padding:20px;
+}
+.card{
+background:#fff;
+padding:30px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,.15);
+width:100%;
+max-width:400px;
+}
+h1{
+text-align:center;
+color:#16a34a;
+margin-bottom:10px;
+}
+p{
+text-align:center;
+color:#555;
+margin-bottom:20px;
+}
+input{
+width:100%;
+padding:14px;
+margin-bottom:15px;
+border:1px solid #ddd;
+border-radius:8px;
+font-size:16px;
+}
+button{
+width:100%;
+padding:15px;
+background:#16a34a;
+color:white;
+border:none;
+border-radius:8px;
+font-size:18px;
+cursor:pointer;
+}
+button:hover{background:#15803d;}
+#status{
+margin-top:20px;
+text-align:center;
+font-weight:bold;
+}
+.footer{
+margin-top:20px;
+text-align:center;
+font-size:13px;
+color:#777;
+}
+</style>
+</head>
 
-const PORT = process.env.PORT || 10000;
+<body>
 
-// TinyPesa API Key (add this in Render Environment Variables)
-const API_KEY = process.env.TINYPESA_API_KEY;
+<div class="card">
+<h1>ShopPay Prompt</h1>
+<p>Pay securely with M-Pesa STK Push.</p>
 
-// Your Till Number
-const TILL_NUMBER = "1714273";
+<input type="tel" id="phone" placeholder="2547XXXXXXXX">
+<input type="number" id="amount" placeholder="Amount (KES)">
 
-app.get("/", (req, res) => {
-  res.send("ShopPay Prompt - M-Pesa STK Push service is running.");
+<button onclick="payNow()">Pay with M-Pesa</button>
+
+<div id="status"></div>
+
+<div class="footer">
+Powered by ShopPay Prompt
+</div>
+</div>
+
+<script>
+async function payNow(){
+const phone=document.getElementById("phone").value.trim();
+const amount=document.getElementById("amount").value.trim();
+const status=document.getElementById("status");
+
+if(!phone || !amount){
+status.style.color="red";
+status.innerText="Enter phone number and amount.";
+return;
+}
+
+status.style.color="#16a34a";
+status.innerText="Sending STK Push...";
+
+try{
+const res=await fetch("https://shoppomt.onrender.com/stkpush",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({phone,amount})
 });
 
-app.post("/stkpush", async (req, res) => {
-  const { phone, amount } = req.body;
+const data=await res.json();
 
-  if (!phone || !amount) {
-    return res.status(400).json({ error: "Phone and amount are required." });
-  }
+status.style.color="#16a34a";
+status.innerText=data.message || "STK Push sent. Check your phone.";
+}catch(err){
+status.style.color="red";
+status.innerText="Payment request failed.";
+}
+}
+</script>
 
-  try {
-    const response = await axios.post(
-      "https://api.tinypesa.com/api/v1/express/initialize",
-      {
-        amount: Number(amount),
-        msisdn: phone,
-        account_no: "ShopPay",
-        till: TILL_NUMBER
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Api-Key": API_KEY
-        }
-      }
-    );
-
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({
-      error: "STK Push failed",
-      details: error.response?.data || error.message
-    });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+</body>
+</html>
