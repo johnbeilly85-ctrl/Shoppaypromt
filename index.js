@@ -1,37 +1,37 @@
 const express = require("express");
-const path = require("path");
+const axios = require("axios");
 
 const app = express();
-const PORT = process.env.PORT || 10000;
-
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
+app.use(express.static("."));
 
 app.post("/stkpush", async (req, res) => {
+  const { phone, amount } = req.body;
+
   try {
-    const { phone, amount } = req.body;
+    const response = await axios.post(
+      "https://tinypesa.com/api/v1/express/initialize",
+      {
+        amount: Number(amount),
+        msisdn: phone,
+        account_no: "ShopPay"
+      },
+      {
+        headers: {
+          Apikey: process.env.TINYPESA_API_KEY,
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-    return res.json({
-      success: true,
-      message: "Pay to ShopPay Prompt Till 1714273",
-      till: "1714273",
-      businessName: "ShopPay Prompt",
-      phone,
-      amount
-    });
-
-  } catch (err) {
+    res.json({ message: "STK Push sent successfully." });
+  } catch (error) {
     res.status(500).json({
-      success: false,
-      message: err.message
+      message: "STK Push failed.",
+      error: error.response?.data || error.message
     });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`ShopPay Prompt running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
